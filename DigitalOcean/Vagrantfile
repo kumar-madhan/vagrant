@@ -1,0 +1,25 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+    
+    # Define the virtual machine
+    config.vm.define "server" do |host|
+      
+      # Specify the box and its properties
+      host.vm.box = "digital_ocean"
+      host.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
+      
+      # Define DigitalOcean provider settings
+      host.vm.provider :digital_ocean do |provider|
+        provider.token = "YOUR_DIGITALOCEAN_API_TOKEN"
+        provider.image = "ubuntu-20-04-x64"
+        provider.region = "blr1"
+        provider.size = "s-1vcpu-1gb"
+      end
+      
+      # Run provision.sh script
+      host.vm.provision "shell", path: "provision.sh"
+    end
+  end
+  

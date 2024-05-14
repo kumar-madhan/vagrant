@@ -1,0 +1,41 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  # Define variables
+  server_name = "Server-1"
+  vm_memory = 4096
+  vm_cpus = 4
+  vm_username = "admin"
+
+  # Define the virtual machine
+  config.vm.define "server" do |host|
+    
+    # Specify the box and its properties
+    host.vm.box = "generic/centos9s"
+    host.vm.hostname = "#{server_name}"
+    
+    # Define the hardware configuration
+    host.vm.provider "virtualbox" do |vb|
+      vb.memory = "#{vm_memory}"
+      vb.cpus = "#{vm_cpus}"
+      vb.name = "#{server_name}"
+    end
+    
+    # Add network bridge
+    host.vm.network "private_network", ip: "192.168.56.#{Random.rand(0..255)}"
+    
+    # SSH key configuration
+    host.vm.provision "shell", inline: <<-SHELL
+      mkdir -p /home/#{vm_username}/.ssh
+      curl -fsSLo /home/#{vm_username}/.ssh/authorized_keys https://raw.githubusercontent.com/hashicorp/vagrant/main/keys/vagrant.pub
+      chown -R #{vm_username}:#{vm_username} /home/#{vm_username}/.ssh
+      chmod 700 /home/#{vm_username}/.ssh
+      chmod 600 /home/#{vm_username}/.ssh/authorized_keys
+    SHELL
+    
+    # Run additional provisioning script
+    host.vm.provision "shell", path: "provision.sh"
+  end
+end
