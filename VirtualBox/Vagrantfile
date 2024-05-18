@@ -28,11 +28,19 @@ Vagrant.configure("2") do |config|
     
     # SSH key configuration
     host.vm.provision "shell", inline: <<-SHELL
+      # Root User Config
+      echo "root:admin" | chpasswd
+      sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+      systemctl restart sshd
+
+      # vm_user Config
+      useradd #{vm_username}
       mkdir -p /home/#{vm_username}/.ssh
       curl -fsSLo /home/#{vm_username}/.ssh/authorized_keys https://raw.githubusercontent.com/hashicorp/vagrant/main/keys/vagrant.pub
       chown -R #{vm_username}:#{vm_username} /home/#{vm_username}/.ssh
       chmod 700 /home/#{vm_username}/.ssh
-      chmod 600 /home/#{vm_username}/.ssh/authorized_keys
+      echo "#{vm_username}  ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+      # chmod 600 /home/#{vm_username}/.ssh/authorized_keys
     SHELL
     
     # Run additional provisioning script
